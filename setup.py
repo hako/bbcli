@@ -10,7 +10,7 @@ setup(
     keywords='hackernews hn terminal',
     author='Dan Claudiu Pop',
     author_email='dancladiupop@gmail.com',
-    url='https://github.com/danclaudiupop/assertHtmlForm',
+    url='https://github.com/danclaudiupop/hackernews/',
     packages=['hackernews'],
     install_requires=['urwid', 'beautifulsoup4'],
     classifiers=[

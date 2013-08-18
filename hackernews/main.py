@@ -5,13 +5,13 @@ from bs4 import BeautifulSoup
 from urllib2 import Request, urlopen, URLError
 
 
-class HNDetailedStory(object):
+class HNSubtext(object):
 
     def __init__(self, item):
         self.item = item
 
     @property
-    def details(self):
+    def subtext(self):
         return self.item.text
 
     @property
@@ -70,7 +70,7 @@ def get_stories_titles():
 def get_stories_subtexts():
     subtexts = get_hackernews_source().select('td.subtext')
     for s in subtexts:
-        yield HNDetailedStory(s)
+        yield HNSubtext(s)
 
 
 def open_browser(url):
@@ -88,7 +88,7 @@ class ItemWidget(urwid.WidgetWrap):
             'body', 'focus'
         )
         story_subtext = urwid.AttrWrap(urwid.Text(
-            '    %s' % story_subtext.details),
+            '    %s' % story_subtext.subtext),
             'subtext', 'focus'
         )
         pile = urwid.Pile([story_title, story_subtext])
