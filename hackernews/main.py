@@ -2,6 +2,7 @@ import urwid
 import itertools
 import subprocess
 from bs4 import BeautifulSoup
+from clint.textui import colored, indent, puts
 from urllib2 import Request, urlopen, URLError
 
 
@@ -46,8 +47,11 @@ class HNStory(object):
 
 
 def get_hackernews_source():
-    req = Request('https://news.ycombinator.com/')
+    url = 'https://news.ycombinator.com/'
+    req = Request(url)
     try:
+        with indent(4, (' >')):
+            puts(colored.cyan('Fetching stories ...'))
         response = urlopen(req)
     except URLError as e:
         if hasattr(e, 'reason'):
@@ -59,16 +63,18 @@ def get_hackernews_source():
     soup = BeautifulSoup(response)
     return soup
 
+page_source = get_hackernews_source()
+
 
 def get_stories_titles():
-    titles = get_hackernews_source().select('td.title')
+    titles = page_source.select('td.title')
     for i, s in enumerate(itertools.islice(titles[1:], 0, None, 2)):
         if not s.text == 'More':
             yield HNStory(i, s)
 
 
 def get_stories_subtexts():
-    subtexts = get_hackernews_source().select('td.subtext')
+    subtexts = page_source.select('td.subtext')
     for s in subtexts:
         yield HNSubtext(s)
 

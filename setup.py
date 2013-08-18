@@ -12,7 +12,7 @@ setup(
     author_email='dancladiupop@gmail.com',
     url='https://github.com/danclaudiupop/hackernews/',
     packages=['hackernews'],
-    install_requires=['urwid', 'beautifulsoup4'],
+    install_requires=['urwid', 'beautifulsoup4', 'clint'],
     classifiers=[
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',
