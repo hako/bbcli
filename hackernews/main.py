@@ -1,82 +1,38 @@
 import urwid
-import itertools
 import subprocess
-from bs4 import BeautifulSoup
-from clint.textui import colored, indent, puts
-from urllib2 import Request, urlopen, URLError
-
-
-class HNSubtext(object):
-
-    def __init__(self, item):
-        self.item = item
-
-    @property
-    def subtext(self):
-        return self.item.text
-
-    @property
-    def points(self):
-        return self.item.span.text
-
-    @property
-    def user(self):
-        return self.item.a.text
+from hnapi import HN
 
 
 class HNStory(object):
 
-    def __init__(self, index, item):
-        self.index = index + 1
-        self.item = item
+    def __init__(self, i, story):
+        self.index = i + 1
+        self.story = story
 
     @property
-    def number(self):
+    def story_number(self):
         index = str(self.index)
         if len(index) == 1:
             return ''.join((' ', index))
         return self.index
 
     @property
-    def title(self):
-        return self.item.text
+    def story_title(self):
+        return self.story.title
 
     @property
-    def href(self):
-        return self.item.a['href']
+    def story_link(self):
+        return self.story.link
+
+    @property
+    def story_subtext(self):
+        return self.story.subtext
 
 
-def get_hackernews_source():
-    url = 'https://news.ycombinator.com/'
-    req = Request(url)
-    try:
-        with indent(4, (' >')):
-            puts(colored.cyan('Fetching stories ...'))
-        response = urlopen(req)
-    except URLError as e:
-        if hasattr(e, 'reason'):
-            print 'We failed to reach a server.'
-            print 'Reason: ', e.reason
-        elif hasattr(e, 'code'):
-            print 'The server couldn\'t fulfill the request.'
-            print 'Error code: ', e.code
-    soup = BeautifulSoup(response)
-    return soup
-
-page_source = get_hackernews_source()
-
-
-def get_stories_titles():
-    titles = page_source.select('td.title')
-    for i, s in enumerate(itertools.islice(titles[1:], 0, None, 2)):
-        if not s.text == 'More':
-            yield HNStory(i, s)
-
-
-def get_stories_subtexts():
-    subtexts = page_source.select('td.subtext')
-    for s in subtexts:
-        yield HNSubtext(s)
+def get_top_stories():
+    hn = HN()
+    for i, story in enumerate(hn.get_top_stories()[:30]):
+        yield HNStory(i, story)
 
 
 def open_browser(url):
@@ -87,14 +43,14 @@ def open_browser(url):
 
 class ItemWidget(urwid.WidgetWrap):
 
-    def __init__(self, story_title, story_subtext):
-        self.href = story_title.href
+    def __init__(self, s):
+        self.story_link = s.story_link
         story_title = urwid.AttrWrap(urwid.Text(
-            '%s. %s' % (story_title.number, story_title.title)),
+            '%s. %s' % (s.story_number, s.story_title)),
             'body', 'focus'
         )
         story_subtext = urwid.AttrWrap(urwid.Text(
-            '    %s' % story_subtext.subtext),
+            '    %s' % (s.story_subtext)),
             'subtext', 'focus'
         )
         pile = urwid.Pile([story_title, story_subtext])
@@ -124,10 +80,10 @@ class UI(object):
         ('subtext', '', '', '', 'g38', 'g66'),
     ]
 
-    def update_with_stories(self, titles, subtexts):
+    def update_with_stories(self):
         items = list()
-        for t, st in zip(titles, subtexts):
-            items.append(ItemWidget(t, st))
+        for story in get_top_stories():
+            items.append(ItemWidget(story))
         self.walker = urwid.SimpleListWalker(items)
         self.listbox = urwid.ListBox(self.walker)
         return self.listbox
@@ -147,7 +103,7 @@ class UI(object):
             if input in ('q', 'Q'):
                 raise urwid.ExitMainLoop()
             if input is 'enter':
-                url = self.listbox.get_focus()[0].href
+                url = self.listbox.get_focus()[0].story_link
                 open_browser(url)
             if input is 'r':
                 import threading
@@ -172,11 +128,8 @@ class UI(object):
                 if self.listbox.focus_position + 1 in self.walker.positions():
                     self.listbox.set_focus(self.walker.positions()[-1])
 
-        titles = get_stories_titles()
-        subtexts = get_stories_subtexts()
-
         view = urwid.Frame(
-            urwid.AttrWrap(self.update_with_stories(titles, subtexts), 'body'),
+            urwid.AttrWrap(self.update_with_stories(), 'body'),
             header=header
         )
 
@@ -185,7 +138,7 @@ class UI(object):
         loop.set_alarm_in(200, self._wrapped_refresh)
 
         def update_footer():
-            url = self.listbox.get_focus()[0].href
+            url = self.listbox.get_focus()[0].story_link
             view.set_footer(urwid.AttrWrap(urwid.Text(url), 'footer'))
 
         urwid.connect_signal(self.walker, 'modified', update_footer)
@@ -197,11 +150,9 @@ class UI(object):
             raise urwid.ExitMainLoop
 
     def refresh(self):
-        titles = get_stories_titles()
-        subtexts = get_stories_subtexts()
         items = list()
-        for t, st in zip(titles, subtexts):
-            items.append(ItemWidget(t, st))
+        for story in get_top_stories():
+            items.append(ItemWidget(story))
 
     def _wrapped_refresh(self, loop, *args):
         self.refresh()
