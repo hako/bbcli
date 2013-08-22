@@ -1,6 +1,5 @@
 import itertools
 from bs4 import BeautifulSoup
-from clint.textui import colored, indent, puts
 from urllib2 import Request, urlopen, URLError
 
 BASE_URL = 'http://news.ycombinator.com'
@@ -32,8 +31,6 @@ class HN():
     def get_hn_source(self, url):
         req = Request(url)
         try:
-            with indent(4, (' >')):
-                puts(colored.cyan('Fetching stories ...'))
             response = urlopen(req).read()
         except URLError as e:
             if hasattr(e, 'reason'):

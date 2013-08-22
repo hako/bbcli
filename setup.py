@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name='hackernews',
+    name='hn',
     version='0.1',
     description='mimicking HN look and feel in terminal',
     long_description=open('README.rst').read(),
@@ -11,8 +11,8 @@ setup(
     author='Dan Claudiu Pop',
     author_email='dancladiupop@gmail.com',
     url='https://github.com/danclaudiupop/hackernews/',
-    packages=['hackernews'],
-    install_requires=['urwid', 'beautifulsoup4', 'clint'],
+    packages=['hn'],
+    install_requires=['urwid', 'beautifulsoup4'],
     classifiers=[
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',
@@ -22,5 +22,5 @@ setup(
         'Topic :: Terminals',
     ],
     entry_points={
-        'console_scripts': ['hackernews = hackernews.main:UI']
+        'console_scripts': ['hn = hn.core:live']
     })
