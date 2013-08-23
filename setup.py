@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pyhackernews',
-    version='0.1',
+    version='0.1.1',
     description='mimicking HN look and feel in terminal',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
