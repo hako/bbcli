@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(
-    name='hn',
+    name='hackernews',
     version='0.1',
     description='mimicking HN look and feel in terminal',
     long_description=open('README.rst').read(),
