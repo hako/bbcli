@@ -29,7 +29,8 @@ class HN():
         return all_stories
 
     def get_hn_source(self, url):
-        req = Request(url)
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        req = Request(url, data=None, headers=headers)
         try:
             response = urlopen(req).read()
         except URLError as e:
