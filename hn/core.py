@@ -47,11 +47,11 @@ class ItemWidget(urwid.WidgetWrap):
     def __init__(self, s):
         self.story_link = s.story_link
         story_title = urwid.AttrWrap(urwid.Text(
-            '%s. %s' % (s.story_number, s.story_title)),
+            u'%s. %s' % (s.story_number, s.story_title)),
             'body', 'focus'
         )
         story_subtext = urwid.AttrWrap(urwid.Text(
-            '    %s' % (s.story_subtext)),
+            u'    %s' % (s.story_subtext)),
             'subtext', 'focus'
         )
         pile = urwid.Pile([story_title, story_subtext])
