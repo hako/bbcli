@@ -47,11 +47,11 @@ class ItemWidget(urwid.WidgetWrap):
     def __init__(self, s):
         self.story_link = s.story_link
         story_title = urwid.AttrWrap(urwid.Text(
-            u'%s. %s' % (s.story_number, s.story_title)),
+            '%s. %s' % (s.story_number, s.story_title)),
             'body', 'focus'
         )
         story_subtext = urwid.AttrWrap(urwid.Text(
-            u'    %s' % (s.story_subtext)),
+            '    %s' % (s.story_subtext)),
             'subtext', 'focus'
         )
         pile = urwid.Pile([story_title, story_subtext])
@@ -93,6 +93,7 @@ class UI(object):
 
     def run(self):
         self.make_screen()
+        urwid.set_encoding('utf-8')
         urwid.connect_signal(self.walker, 'modified', self.update_footer)
         try:
             self.loop.run()
