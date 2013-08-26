@@ -127,9 +127,13 @@ class UI(object):
         self.listbox = urwid.ListBox(self.walker)
         return self.listbox
 
+    def set_status_bar(self, msg):
+        msg = '%s' % (msg.rjust(len(msg)+1))
+        self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'footer'))
+
     def update_footer(self):
         url = self.listbox.get_focus()[0].story_link
-        self.view.set_footer(urwid.AttrWrap(urwid.Text(' %s' % url), 'footer'))
+        self.set_status_bar(url)
 
     def keystroke(self, input):
         if input in ('q', 'Q'):
@@ -138,6 +142,8 @@ class UI(object):
             url = self.listbox.get_focus()[0].story_link
             open_browser(url)
         if input is 'r':
+            self.set_status_bar('Refreshing for new stories...')
+            self.loop.draw_screen()
             self.refresh_with_new_stories()
         if input is 'k':
             if self.listbox.focus_position - 1 in self.walker.positions():
@@ -164,9 +170,7 @@ class UI(object):
     def _wrapped_refresh(self, loop, *args):
         self.refresh_with_new_stories()
         ct = datetime.now().strftime('%H:%M:%S')
-        self.view.set_footer(urwid.AttrWrap(urwid.Text(
-            ' Automatically fetched new stories at: %s' % ct), 'footer'
-        ))
+        self.set_status_bar('Automatically fetched new stories at: %s' % ct)
         self.loop.set_alarm_in(600, self._wrapped_refresh)
 
 
