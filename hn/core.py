@@ -1,3 +1,4 @@
+import os
 import urwid
 import subprocess
 from hnapi import HN
@@ -38,7 +39,9 @@ def get_top_stories():
 
 def open_browser(url):
     subprocess.Popen(
-        ['xdg-open', url], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        ['python', '-m', 'webbrowser', '-t', url],
+        stdout=open(os.devnull),
+        stderr=open(os.devnull),
     )
 
 
