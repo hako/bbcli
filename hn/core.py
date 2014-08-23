@@ -1,9 +1,11 @@
 import os
 import urwid
 import subprocess
+import ConfigParser
 from hnapi import HN
 from datetime import datetime
 
+_config = None
 
 class HNStory(object):
 
@@ -37,12 +39,34 @@ def get_top_stories():
         yield HNStory(i, story)
 
 
-def open_browser(url):
-    subprocess.Popen(
-        ['python', '-m', 'webbrowser', '-t', url],
-        stdout=open(os.devnull),
-        stderr=open(os.devnull),
-    )
+def read_config():
+    filename = 'pyhackernews'
+    config = ConfigParser.ConfigParser()
+    if os.path.exists(os.path.expanduser('~' + '/.' + filename)):
+        config.read(os.path.expanduser('~' + '/.' + filename))
+    elif os.path.exists ( os.path.expanduser('~' + '/.config/' + filename)):
+        config.read(os.path.expanduser('~' + '/.config/' + filename))
+    return config
+
+
+def open_browser(function, url):
+    global _config
+    try:
+        command = _config.get('Commands', function)
+        if command:
+            subprocess.Popen(
+                command.replace('%URL', url).split(' '),
+                stdout=open(os.devnull),
+                stderr=open(os.devnull),
+            )
+        else:
+            raise
+    except:
+        subprocess.Popen(
+            ['python', '-m', 'webbrowser', '-t', url],
+            stdout=open(os.devnull),
+            stderr=open(os.devnull),
+        )
 
 
 class ItemWidget(urwid.WidgetWrap):
@@ -94,10 +118,23 @@ class UI(object):
     ]
     header = urwid.Columns(header)
 
+    # defaults
+    keys = {
+        'quit'        : 'q',
+        'open'        : 'Enter',
+        'tabopen'     : 'Enter',
+        'refresh'     : 'r',
+        'scroll_up'   : 'k',
+        'scroll_down' : 'j',
+        'top'         : 'g',
+        'bottom'      : 'G'
+    }
+
     def run(self):
         self.make_screen()
         urwid.set_encoding('utf-8')
         urwid.connect_signal(self.walker, 'modified', self.update_footer)
+        self.set_keys()
         try:
             self.loop.run()
         except KeyboardInterrupt:
@@ -117,6 +154,17 @@ class UI(object):
         )
         self.loop.screen.set_terminal_properties(colors=256)
         self.loop.set_alarm_in(600, self._wrapped_refresh)
+
+    def set_keys(self):
+        global _config
+        _config = read_config()
+        if _config.has_section('Keys'):
+            for option in _config.options('Keys'):
+                try:
+                    self.keys[option] = _config.get('Keys', option)
+                except:
+                    pass
+
 
     def get_stories(self):
         items = list()
@@ -139,29 +187,31 @@ class UI(object):
         self.set_status_bar(url)
 
     def keystroke(self, input):
-        if input in ('q', 'Q'):
+        if input in self.keys['quit'].lower():
             raise urwid.ExitMainLoop()
-        if input is 'enter':
+        if input is self.keys['open'] or input is self.keys['tabopen']:
             url = self.listbox.get_focus()[0].story_link
-            open_browser(url)
-        if input is 'r':
+            function = [key for (key,value) in self.keys.items()
+                       if value == input][0]
+            open_browser(function, url)
+        if input is self.keys['refresh']:
             self.set_status_bar('Refreshing for new stories...')
             self.loop.draw_screen()
             self.refresh_with_new_stories()
-        if input is 'k':
+        if input is self.keys['scroll_up']:
             if self.listbox.focus_position - 1 in self.walker.positions():
                 self.listbox.set_focus(
                     self.walker.prev_position(self.listbox.focus_position)
                 )
-        if input is 'j':
+        if input is self.keys['scroll_down']:
             if self.listbox.focus_position + 1 in self.walker.positions():
                 self.listbox.set_focus(
                     self.walker.next_position(self.listbox.focus_position)
                 )
-        if input is 'g':
+        if input is self.keys['top']:
             if self.listbox.focus_position - 1 in self.walker.positions():
                 self.listbox.set_focus(self.walker.positions()[0])
-        if input is 'G':
+        if input is self.keys['bottom']:
             if self.listbox.focus_position + 1 in self.walker.positions():
                 self.listbox.set_focus(self.walker.positions()[-1])
 
