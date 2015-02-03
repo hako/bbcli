@@ -2,17 +2,17 @@ from setuptools import setup
 
 
 setup(
-    name='pyhackernews',
+    name='bbcli',
     version='0.1.4',
-    description='mimicking HN look and feel in terminal',
+    description='Browse BBC News through the command line (based on pyhackernews)',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
-    keywords='hackernews hn terminal',
-    author='Dan Claudiu Pop, Chase Franklin',
-    author_email='dancladiupop@gmail.com, jakhead@gmail.com',
-    url='https://github.com/danclaudiupop/pyhackernews/',
-    packages=['hn'],
-    install_requires=['urwid', 'beautifulsoup4'],
+    keywords='bbc news console terminal curses',
+    author='Wesley Hill, Calvin Hill',
+    author_email='wesley@hakobaito.co.uk',
+    url='https://github.com/hako/bbcli',
+    packages=['bbcli'],
+    install_requires=['urwid'],
     classifiers=[
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',
@@ -22,5 +22,5 @@ setup(
         'Topic :: Terminals',
     ],
     entry_points={
-        'console_scripts': ['hn = hn.core:live']
+        'console_scripts': ['bbcli = bbcli.core:live']
     })

@@ -2,12 +2,15 @@ import os
 import urwid
 import subprocess
 import ConfigParser
-from hnapi import HN
+import webbrowser
+import time
+
+from bbcapi import BBC
 from datetime import datetime
 
 _config = None
 
-class HNStory(object):
+class BBCNews(object):
 
     def __init__(self, i, story):
         self.index = i + 1
@@ -34,13 +37,14 @@ class HNStory(object):
 
 
 def get_top_stories():
-    hn = HN()
-    for i, story in enumerate(hn.get_top_stories()[:30]):
-        yield HNStory(i, story)
+    bbc = BBC()
+    news = bbc.get_top_stories()
+    for i, story in enumerate(news[:30]):
+        yield BBCNews(i, story)
 
 
 def read_config():
-    filename = 'pyhackernews'
+    filename = 'bbcli'
     config = ConfigParser.ConfigParser()
     if os.path.exists(os.path.expanduser('~' + '/.' + filename)):
         config.read(os.path.expanduser('~' + '/.' + filename))
@@ -49,24 +53,8 @@ def read_config():
     return config
 
 
-def open_browser(function, url):
-    global _config
-    try:
-        command = _config.get('Commands', function)
-        if command:
-            subprocess.Popen(
-                command.replace('%URL', url).split(' '),
-                stdout=open(os.devnull),
-                stderr=open(os.devnull),
-            )
-        else:
-            raise
-    except:
-        subprocess.Popen(
-            ['python', '-m', 'webbrowser', '-t', url],
-            stdout=open(os.devnull),
-            stderr=open(os.devnull),
-        )
+def open_browser(url):
+    webbrowser.open(url, 2)
 
 
 class ItemWidget(urwid.WidgetWrap):
@@ -101,39 +89,44 @@ class ItemWidget(urwid.WidgetWrap):
 class UI(object):
 
     palette = [
-        ('head', '', '', '', 'g7', '#f60'),
-        ('body', '', '', '', 'g7', 'g66'),
-        ('footer', '', '', '', 'g7', 'g55'),
-        ('focus', '', '', '', 'g7', 'g55'),
-        ('subtext', '', '', '', 'g38', 'g66'),
+        ('head', '', '', '', '#FFF', '#E00'),
+        ('body', '', '', '', '#000', '#FFF'),
+        ('footer', '', '', '', '#000', 'g89'),
+        ('focus', '', '', '', '#FFF', 'dark red'),
+        ('subtext', '', '', '', 'g55', '#FFF'),
+        ('breaking', '', '', '', '#FFF', '#E00'),
     ]
 
     header = [
         urwid.AttrWrap(urwid.Text(
-            ' Y | Hacker News', align='left'), 'head'
+            ' BBC | NEWS', align='center'), 'head'
         ),
         ('flow', urwid.AttrWrap(urwid.Text(
-            ' ', align="right"), 'head'
-        ))
+            ' ', align="left"), 'head'
+        )),
     ]
     header = urwid.Columns(header)
 
     # defaults
     keys = {
         'quit'        : 'q',
-        'open'        : 'Enter',
-        'tabopen'     : 'Enter',
+        'open'        : 'w',
+        'tabopen'     : 't',
         'refresh'     : 'r',
+        'latest'      : 'l',
         'scroll_up'   : 'k',
         'scroll_down' : 'j',
         'top'         : 'g',
         'bottom'      : 'G'
     }
 
+    tickers = None
+    ticker_count = -1
+    link = ""
+
     def run(self):
         self.make_screen()
         urwid.set_encoding('utf-8')
-        urwid.connect_signal(self.walker, 'modified', self.update_footer)
         self.set_keys()
         try:
             self.loop.run()
@@ -153,7 +146,9 @@ class UI(object):
             unhandled_input=self.keystroke
         )
         self.loop.screen.set_terminal_properties(colors=256)
-        self.loop.set_alarm_in(600, self._wrapped_refresh)
+        self.update_ticker()
+        self.loop.set_alarm_in(200, self._wrapped_refresh)
+        self.loop.set_alarm_in(5, self.next)
 
     def set_keys(self):
         global _config
@@ -164,7 +159,6 @@ class UI(object):
                     self.keys[option] = _config.get('Keys', option)
                 except:
                     pass
-
 
     def get_stories(self):
         items = list()
@@ -182,22 +176,22 @@ class UI(object):
         msg = '%s' % (msg.rjust(len(msg)+1))
         self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'footer'))
 
-    def update_footer(self):
-        url = self.listbox.get_focus()[0].story_link
-        self.set_status_bar(url)
+    def update_ticker(self):
+        self.tickers = self.get_tickers()
+        self.set_status_bar("Ticker initalised.")
 
     def keystroke(self, input):
         if input in self.keys['quit'].lower():
             raise urwid.ExitMainLoop()
         if input is self.keys['open'] or input is self.keys['tabopen']:
             url = self.listbox.get_focus()[0].story_link
-            function = [key for (key,value) in self.keys.items()
-                       if value == input][0]
-            open_browser(function, url)
+            open_browser(url)
         if input is self.keys['refresh']:
             self.set_status_bar('Refreshing for new stories...')
             self.loop.draw_screen()
             self.refresh_with_new_stories()
+        if input is self.keys['latest']:
+            open_browser(self.link)
         if input is self.keys['scroll_up']:
             if self.listbox.focus_position - 1 in self.walker.positions():
                 self.listbox.set_focus(
@@ -220,11 +214,36 @@ class UI(object):
         self.walker[:] = items
         self.loop.draw_screen()
 
+    def get_tickers(self):
+        bbc = BBC()
+        ticker_objs = bbc.get_ticker()
+        return ticker_objs
+
+    def set_latest_links(self, link):
+        self.link = link
+
+    def next(self, loop, *args):
+        self.loop.draw_screen()
+        text = self.tickers
+        if(self.ticker_count < len(text)):
+            self.ticker_count += 1
+        if(self.ticker_count == len(text)):
+            self.ticker_count = 0
+        if(text[self.ticker_count].breaking == "true"):
+            final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
+            msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
+            self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
+        else:
+            self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore'))
+        self.set_latest_links(text[self.ticker_count].url)
+        self.loop.set_alarm_in(10, self.next)
+
     def _wrapped_refresh(self, loop, *args):
+        self.update_ticker()
         self.refresh_with_new_stories()
         ct = datetime.now().strftime('%H:%M:%S')
-        self.set_status_bar('Automatically fetched new stories at: %s' % ct)
-        self.loop.set_alarm_in(600, self._wrapped_refresh)
+        self.set_status_bar('Automatically updated ticker and fetched new stories at: %s' % ct)
+        self.loop.set_alarm_in(200, self._wrapped_refresh)
 
 
 def live():

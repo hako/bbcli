@@ -1,32 +1,27 @@
-pyhackernews
+bbcli
 ============
 
-mimicking HN look and feel in terminal
-
-
-HN in terminal with tmux:
-
-.. image:: http://i.imgur.com/890LAsb.png
+Browse BBC News through the command line. (based on pyhackernews)
 
 instalation and usage:
 ======================
 
-``pip install pyhackernews``
+``pip install bbcli``
 
 and then in terminal:
 
-``hn``
+``bbcli``
 
 configuration:
 ==============
 
 Custom keybindings can be defined in either:
 
-``$HOME/.pyhackernews``
+``$HOME/.bbcli``
 
 Or:
 
-``$HOME/.config/pyhackernews``
+``$HOME/.config/bbcli``
 
 
 Like so:
@@ -35,9 +30,10 @@ Like so:
 
   [Keys]
   quit = q
-  open = o
+  open = w
   tabopen = O
   refresh = r
+  latest = l
   scroll_up = k
   scroll_down = j
   bottom = G
@@ -48,3 +44,7 @@ Like so:
 
   open = dwbremote :open %URL
   tabopen = dwbremote :tabopen %URL
+
+credits
+=======
+Dan Claudiu Pop and Chase Franklin for pyhackernews.
