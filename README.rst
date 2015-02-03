@@ -3,6 +3,8 @@ bbcli
 
 Browse BBC News through the command line. (based on pyhackernews)
 
+.. image:: https://cloud.githubusercontent.com/assets/2040416/6029751/a176a20a-abea-11e4-8be4-ba435b3b48c0.gif
+
 instalation and usage:
 ======================
 
