@@ -25,7 +25,10 @@ class BBC():
             headline = d['headline']
             prompt = d['prompt']
             breaking = d['isBreaking']
-            url = d['url']
+            if 'url' in d:
+                url = d['url']
+            else:
+                url = ""
             ticker = Ticker(headline, prompt, breaking, url)
             tickers.append(ticker)
         return tickers
