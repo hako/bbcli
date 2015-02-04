@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='bbcli',
-    version='0.1.4',
+    version='0.1.5',
     description='Browse BBC News through the command line (based on pyhackernews)',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
