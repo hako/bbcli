@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='bbcli',
-    version='0.1.5',
+    version='0.1.6',
     description='Browse BBC News through the command line (based on pyhackernews)',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
@@ -12,7 +12,7 @@ setup(
     author_email='wesley@hakobaito.co.uk',
     url='https://github.com/hako/bbcli',
     packages=['bbcli'],
-    install_requires=['urwid'],
+    install_requires=['urwid', 'requests'],
     classifiers=[
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',

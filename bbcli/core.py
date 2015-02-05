@@ -1,6 +1,5 @@
 import os
 import urwid
-import subprocess
 import ConfigParser
 import webbrowser
 import time
