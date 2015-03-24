@@ -222,19 +222,22 @@ class UI(object):
         self.link = link
 
     def next(self, loop, *args):
-        self.loop.draw_screen()
         text = self.tickers
-        if(self.ticker_count < len(text)):
-            self.ticker_count += 1
-        if(self.ticker_count == len(text)):
-            self.ticker_count = 0
-        if(text[self.ticker_count].breaking == "true"):
-            final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
-            msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
-            self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
+        if(not text):
+            self.view.set_footer(urwid.AttrWrap(urwid.Text(""), 'body'))
         else:
-            self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore'))
-        self.set_latest_links(text[self.ticker_count].url)
+            self.loop.draw_screen()
+            if(self.ticker_count < len(text)):
+                self.ticker_count += 1
+            if(self.ticker_count == len(text)):
+                self.ticker_count = 0
+            if(text[self.ticker_count].breaking == "true"):
+                final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
+                msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
+                self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
+            else:
+                self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore'))
+                self.set_latest_links(text[self.ticker_count].url)
         self.loop.set_alarm_in(10, self.next)
 
     def _wrapped_refresh(self, loop, *args):
