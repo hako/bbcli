@@ -54,8 +54,8 @@ class BBC():
     
     def get_bbc_story(self):
         headers = {
-        'User-Agent': 'BBCNews/3.0.1 UK (Nexus 4; Android 5.0)', 
-        'Accept-Encoding': 'gzip', 
+        'User-Agent': 'BBCNews/3.0.9.45 UK (Nexus 4; Android 5.0)', 
+        'Accept-Encoding': 'gzip',
         'Connection': 'Keep-Alive',
         'Accept': 'application/json'
         }
