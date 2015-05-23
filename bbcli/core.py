@@ -231,10 +231,16 @@ class UI(object):
                 self.ticker_count += 1
             if(self.ticker_count == len(text)):
                 self.ticker_count = 0
-            if(text[self.ticker_count].breaking == "true"):
+            if(not text[self.ticker_count].url and text[self.ticker_count].breaking == "true"):
                 final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
                 msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
                 self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
+                self.set_latest_links(text[self.ticker_count].url)
+            elif text[self.ticker_count].url and text[self.ticker_count].breaking == "true":
+                final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
+                msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
+                self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
+                self.set_latest_links(text[self.ticker_count].url)
             else:
                 self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore'))
                 self.set_latest_links(text[self.ticker_count].url)
@@ -246,7 +252,6 @@ class UI(object):
         ct = datetime.now().strftime('%H:%M:%S')
         self.set_status_bar('Automatically updated ticker and fetched new stories at: %s' % ct)
         self.loop.set_alarm_in(200, self._wrapped_refresh)
-
 
 def live():
     u = UI()
