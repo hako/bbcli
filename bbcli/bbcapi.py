@@ -1,6 +1,7 @@
 import json
-import datetime
+import arrow
 import requests
+import arrow
 import os
 
 API_BASE_URL = "http://trevor-producer-cdn.api.bbci.co.uk"
@@ -34,7 +35,7 @@ class BBC():
         return tickers
 
     def parse_news(self, stories):
-        tnews = []
+        t_news = []
         ts_section = ""
         data = json.loads(stories)
         for i, d in enumerate(data['relations']):
@@ -44,18 +45,18 @@ class BBC():
                 else:
                     ts_section = rel['content']['name']
             ts_title = d['content']['name']
-            timestamp = str(d['content']['lastUpdated']).replace("000", "")
-            ts_time = datetime.datetime.fromtimestamp(float(timestamp))
+            timestamp = d['content']['lastUpdated']
+            ts_time = arrow.get(float(timestamp) / 1000).humanize()
             ts_subtext  = "Last updated: " + str(ts_time) + " | " + str(ts_section)
             ts_link = str(d['content']['shareUrl'])
             news = News(ts_title, ts_link, ts_subtext)
-            tnews.append(news)
-        return tnews
+            t_news.append(news)
+        return t_news
     
     def get_bbc_story(self):
         headers = {
-        'User-Agent': 'BBCNews/3.0.1 UK (Nexus 4; Android 5.0)', 
-        'Accept-Encoding': 'gzip', 
+        'User-Agent': 'BBCNews/3.0.9.45 UK (Nexus 4; Android 5.0)', 
+        'Accept-Encoding': 'gzip',
         'Connection': 'Keep-Alive',
         'Accept': 'application/json'
         }
