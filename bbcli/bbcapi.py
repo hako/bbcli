@@ -2,7 +2,7 @@ import json
 import arrow
 import requests
 import arrow
-import os
+import sys
 
 API_BASE_URL = "http://trevor-producer-cdn.api.bbci.co.uk"
 BBC_URL = "http://www.bbc.co.uk"
@@ -63,12 +63,9 @@ class BBC():
         try:
             res = requests.get(API_BASE_URL + "/content/cps/news/front_page", data=None, headers=headers)
         except requests.ConnectionError as e:
-            if hasattr(e, 'reason'):
-                print 'We failed to reach a server.'
-                print 'Reason: ', e.reason
-            elif hasattr(e, 'code'):
-                print 'The server couldn\'t fulfill the request.'
-                print 'Error code: ', e.code
+                print "\n" + e.args[0][0]
+                print 'Reason:', e.args[0][1]
+                sys.exit()
         return res
 
     def get_bbc_ticker(self):
@@ -78,12 +75,9 @@ class BBC():
         try:
             res = requests.get(BBC_URL + "/news/10284448/ticker.sjson", data=None, headers=ua)
         except requests.ConnectionError as e:
-            if hasattr(e, 'reason'):
-                print 'We failed to reach a server.'
-                print 'Reason: ', e.reason
-            elif hasattr(e, 'code'):
-                print 'The server couldn\'t fulfill the request.'
-                print 'Error code: ', e.code
+                print "\n" + e.args[0][0]
+                print 'Reason:', e.args[0][1]
+                sys.exit()
         return res
                 
 class News():
