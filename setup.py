@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='bbcli',
     version='0.1.9',
-    description='Browse BBC News like a hacker.',
+    description='Browse BBC News like a hacker. (based on pyhackernews)',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
     keywords='bbc news console terminal curses',
