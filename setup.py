@@ -3,11 +3,11 @@ from setuptools import setup
 
 setup(
     name='bbcli',
-    version='0.1.9',
-    description='Browse BBC News through the command line (based on pyhackernews)',
+    version='0.2',
+    description='Browse BBC News like a hacker. (based on pyhackernews)',
     long_description=open('README.rst').read(),
     license=open('LICENSE').read(),
-    keywords='bbc news console terminal curses',
+    keywords='bbc news console terminal curses urwid',
     author='Wesley Hill, Calvin Hill',
     author_email='wesley@hakobaito.co.uk',
     url='https://github.com/hako/bbcli',

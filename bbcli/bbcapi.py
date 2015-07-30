@@ -11,12 +11,18 @@ class BBC():
     
     def get_top_stories(self):
         news = self.get_bbc_story()
-        data = json.dumps(news.json())
-        return self.parse_news(data)
+        if news == None:
+            return None
+        else:
+            data = json.dumps(news.json())
+            return self.parse_news(data)
 
     def get_ticker(self):
         ticker = self.get_bbc_ticker()
-        data = json.dumps(ticker.json())
+        if ticker == None:
+            return None
+        else:
+            data = json.dumps(ticker.json())
         return self.parse_ticker_data(data)
 
     def parse_ticker_data(self, ticker_data):
@@ -54,6 +60,7 @@ class BBC():
         return t_news
     
     def get_bbc_story(self):
+        res = None
         headers = {
         'User-Agent': 'BBCNews/3.0.9.45 UK (Nexus 4; Android 5.0)', 
         'Accept-Encoding': 'gzip',
@@ -72,6 +79,7 @@ class BBC():
         return res
 
     def get_bbc_ticker(self):
+        res = None
         ua = {
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/5311 (KHTML, like Gecko) Chrome/13.0.837.0 Safari/5311'
         }

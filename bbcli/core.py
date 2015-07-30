@@ -38,8 +38,11 @@ class BBCNews(object):
 def get_top_stories():
     bbc = BBC()
     news = bbc.get_top_stories()
-    for i, story in enumerate(news[:30]):
-        yield BBCNews(i, story)
+    if news == None:
+        pass
+    else:
+        for i, story in enumerate(news[:30]):
+            yield BBCNews(i, story)
 
 
 def read_config():
@@ -90,6 +93,8 @@ class UI(object):
     palette = [
         ('head', '', '', '', '#FFF', '#E00'),
         ('body', '', '', '', '#000', '#FFF'),
+        ('offline', '', '', '', '#FFF', '#000'),
+        ('offline_bg', '', '', '', '#FFF', '#000'),
         ('footer', '', '', '', '#000', 'g89'),
         ('focus', '', '', '', '#FFF', 'dark red'),
         ('subtext', '', '', '', 'g55', '#FFF'),
@@ -106,6 +111,16 @@ class UI(object):
     ]
     header = urwid.Columns(header)
 
+    offlineHeader = [
+        urwid.AttrWrap(urwid.Text(
+            ' BBC | NEWS (Offline)', align='center'), 'head'
+        ),
+        ('flow', urwid.AttrWrap(urwid.Text(
+            ' ', align="left"), 'head'
+        )),
+    ]
+    offlineHeader = urwid.Columns(offlineHeader)
+
     # defaults
     keys = {
         'quit'        : 'q',
@@ -121,6 +136,7 @@ class UI(object):
 
     tickers = None
     ticker_count = -1
+    count = 2
     link = ""
 
     def run(self):
@@ -165,6 +181,24 @@ class UI(object):
             items.append(ItemWidget(story))
         return items
 
+    def isOnline(self):
+        if len(self.get_stories()) == 0:
+            return False
+        else:
+            return True
+
+    def alreadyOnline(self):
+        if self.isOnline() == False:
+            self.count = 0
+            return False
+        elif self.isOnline() == True:
+            self.count = self.count + 1
+        if self.count >= 2:
+            self.count = 2
+            return True
+        else:
+            return False
+
     def populate_stories(self):
         items = self.get_stories()
         self.walker = urwid.SimpleListWalker(items)
@@ -177,7 +211,12 @@ class UI(object):
 
     def update_ticker(self):
         self.tickers = self.get_tickers()
-        self.set_status_bar("Ticker initalised.")
+        if self.isOnline() == False:
+            self.view.set_body(urwid.AttrWrap(self.populate_stories(), 'offline_bg'))
+            self.view.set_header(header=self.offlineHeader)
+            self.view.set_footer(urwid.AttrWrap(urwid.Text("You are currently offline. Please check your internet connection."), 'offline'))
+        else:
+            self.set_status_bar("Ticker initalised.")
 
     def keystroke(self, input):
         if input in self.keys['quit'].lower():
@@ -210,8 +249,19 @@ class UI(object):
 
     def refresh_with_new_stories(self):
         items = self.get_stories()
-        self.walker[:] = items
-        self.loop.draw_screen()
+        self.alreadyOnline()
+        if self.count == 0:
+            self.tickers = []
+            self.view.set_body(urwid.AttrWrap(self.populate_stories(), 'offline_bg'))
+            self.view.set_header(header=self.offlineHeader)
+            self.view.set_footer(urwid.AttrWrap(urwid.Text("You are currently offline. Please check your internet connection."), 'offline'))
+        if self.count == 1:
+            self.view.set_header(header=self.header)
+            self.view.set_body(urwid.AttrWrap(self.populate_stories(), 'body'))
+            self.update_ticker()
+        else:
+            self.walker[:] = items
+            self.loop.draw_screen()
 
     def get_tickers(self):
         bbc = BBC()
@@ -247,10 +297,14 @@ class UI(object):
         self.loop.set_alarm_in(10, self.next)
 
     def _wrapped_refresh(self, loop, *args):
+        online = self.isOnline()
         self.update_ticker()
         self.refresh_with_new_stories()
         ct = datetime.now().strftime('%H:%M:%S')
-        self.set_status_bar('Automatically updated ticker and fetched new stories at: %s' % ct)
+        if online == False:
+            self.set_status_bar('You are currently offline. Please check your internet connection.')
+        else:
+            self.set_status_bar('Automatically updated ticker and fetched new stories at: %s' % ct)
         self.loop.set_alarm_in(200, self._wrapped_refresh)
 
 def live():
