@@ -138,7 +138,7 @@ class UI(object):
     mouse_button = {
         'left'       : 1,
         'middle'     : 2,
-        'rigth'      : 3,
+        'right'      : 3,
         'wheel_up'   : 4,
         'wheel_down' : 5
     }
