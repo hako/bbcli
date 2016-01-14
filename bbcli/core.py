@@ -1,11 +1,12 @@
-import os
-import urwid
 import ConfigParser
-import webbrowser
+import os
 import time
+import webbrowser
+from datetime import datetime
+
+import urwid
 
 from bbcapi import BBC
-from datetime import datetime
 
 _config = None
 
@@ -219,6 +220,9 @@ class UI(object):
             self.set_status_bar("Ticker initalised.")
 
     def keystroke(self, input):
+        # ignore mouse inputs
+        if type(input) is not str:
+            return
         if input in self.keys['quit'].lower():
             raise urwid.ExitMainLoop()
         if input is self.keys['open'] or input is self.keys['tabopen']:
