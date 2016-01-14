@@ -1,11 +1,12 @@
-import os
-import urwid
 import ConfigParser
-import webbrowser
+import os
 import time
+import webbrowser
+from datetime import datetime
+
+import urwid
 
 from bbcapi import BBC
-from datetime import datetime
 
 _config = None
 
@@ -134,6 +135,14 @@ class UI(object):
         'bottom'      : 'G'
     }
 
+    mouse_button = {
+        'left'       : 1,
+        'middle'     : 2,
+        'rigth'      : 3,
+        'wheel_up'   : 4,
+        'wheel_down' : 5
+    }
+
     tickers = None
     ticker_count = -1
     count = 2
@@ -158,7 +167,7 @@ class UI(object):
         self.loop = urwid.MainLoop(
             self.view,
             self.palette,
-            unhandled_input=self.keystroke
+            unhandled_input=self.handle_user_input
         )
         self.loop.screen.set_terminal_properties(colors=256)
         self.update_ticker()
@@ -218,12 +227,35 @@ class UI(object):
         else:
             self.set_status_bar("Ticker initalised.")
 
+    def open_story_link(self):
+        url = self.listbox.get_focus()[0].story_link
+        open_browser(url)
+
+    def scroll_up(self):
+        if self.listbox.focus_position - 1 in self.walker.positions():
+            self.listbox.set_focus(
+                self.walker.prev_position(self.listbox.focus_position)
+            )
+
+    def scroll_down(self):
+        if self.listbox.focus_position + 1 in self.walker.positions():
+            self.listbox.set_focus(
+                self.walker.next_position(self.listbox.focus_position)
+            )
+
+    def mouse_input(self, input):
+        if input[1] == self.mouse_button['left']:
+            self.open_story_link()
+        elif input[1] == self.mouse_button['wheel_up']:
+            self.scroll_up()
+        elif input[1] == self.mouse_button['wheel_down']:
+            self.scroll_down()
+
     def keystroke(self, input):
         if input in self.keys['quit'].lower():
             raise urwid.ExitMainLoop()
         if input is self.keys['open'] or input is self.keys['tabopen']:
-            url = self.listbox.get_focus()[0].story_link
-            open_browser(url)
+            self.open_story_link()
         if input is self.keys['refresh']:
             self.set_status_bar('Refreshing for new stories...')
             self.loop.draw_screen()
@@ -231,21 +263,21 @@ class UI(object):
         if input is self.keys['latest']:
             open_browser(self.link)
         if input is self.keys['scroll_up']:
-            if self.listbox.focus_position - 1 in self.walker.positions():
-                self.listbox.set_focus(
-                    self.walker.prev_position(self.listbox.focus_position)
-                )
+            self.scroll_up()
         if input is self.keys['scroll_down']:
-            if self.listbox.focus_position + 1 in self.walker.positions():
-                self.listbox.set_focus(
-                    self.walker.next_position(self.listbox.focus_position)
-                )
+            self.scroll_down()
         if input is self.keys['top']:
             if self.listbox.focus_position - 1 in self.walker.positions():
                 self.listbox.set_focus(self.walker.positions()[0])
         if input is self.keys['bottom']:
             if self.listbox.focus_position + 1 in self.walker.positions():
                 self.listbox.set_focus(self.walker.positions()[-1])
+
+    def handle_user_input(self, input):
+        if type(input) is tuple:
+            self.mouse_input(input)
+        elif type(input) is str:
+            self.keystroke(input)
 
     def refresh_with_new_stories(self):
         items = self.get_stories()
