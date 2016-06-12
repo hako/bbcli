@@ -36,14 +36,15 @@ class BBC():
             return tickers
             
         response = data["html"]
-        # Error checking must me done here
         htmlData = minidom.parseString(response)
         elements = htmlData.getElementsByTagName("div")
 
-        # Not tested to handle multiple breaking news alerts..
-
-        headline = elements[0].getElementsByTagName("p")[0].firstChild.nodeValue.replace("\n","") # Heading
-        url = elements[0].getElementsByTagName("a")[0].getAttribute('href') # News Link as in /news/
+        # Not yet tested to handle multiple breaking news alerts.
+        
+        # Heading
+        headline = elements[0].getElementsByTagName("p")[0].firstChild.nodeValue.replace("\n","")
+        # News Link as in /news/ 
+        url = elements[0].getElementsByTagName("a")[0].getAttribute('href') 
         
         ticker = Ticker(headline, "BREAKING NEWS", "true", BBC_URL + url)
         tickers.append(ticker)
