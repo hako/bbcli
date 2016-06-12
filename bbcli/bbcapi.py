@@ -4,8 +4,11 @@ import requests
 import arrow
 import os
 
+from defusedxml import minidom
+
 API_BASE_URL = "http://trevor-producer-cdn.api.bbci.co.uk"
-BBC_URL = "http://www.bbc.co.uk"
+BBC_URL = "https://www.bbc.co.uk"
+BBC_POLLING_URL = "https://polling.bbc.co.uk"
 
 class BBC():
     
@@ -22,22 +25,28 @@ class BBC():
         if ticker == None:
             return None
         else:
-            data = json.dumps(ticker.json())
+            data = json.dumps(ticker.json(strict=False))
         return self.parse_ticker_data(data)
 
     def parse_ticker_data(self, ticker_data):
         tickers = []
         data = json.loads(ticker_data)
-        for d in data['entries']:
-            headline = d['headline']
-            prompt = d['prompt']
-            breaking = d['isBreaking']
-            if 'url' in d:
-                url = d['url']
-            else:
-                url = ""
-            ticker = Ticker(headline, prompt, breaking, url)
-            tickers.append(ticker)
+        
+        if len(data["html"]) == 0:
+            return tickers
+            
+        response = data["html"]
+        # Error checking must me done here
+        htmlData = minidom.parseString(response)
+        elements = htmlData.getElementsByTagName("div")
+
+        # Not tested to handle multiple breaking news alerts..
+
+        headline = elements[0].getElementsByTagName("p")[0].firstChild.nodeValue.replace("\n","") # Heading
+        url = elements[0].getElementsByTagName("a")[0].getAttribute('href') # News Link as in /news/
+        
+        ticker = Ticker(headline, "BREAKING NEWS", "true", BBC_URL + url)
+        tickers.append(ticker)
         return tickers
 
     def parse_news(self, stories):
@@ -84,7 +93,7 @@ class BBC():
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/5311 (KHTML, like Gecko) Chrome/13.0.837.0 Safari/5311'
         }
         try:
-            res = requests.get(BBC_URL + "/news/10284448/ticker.sjson", data=None, headers=ua)
+            res = requests.get(BBC_POLLING_URL + "/news/latest_breaking_news?audience=Domestic", data=None, headers=ua)
         except requests.ConnectionError as e:
             if hasattr(e, 'reason'):
                 print 'We failed to reach a server.'
@@ -93,7 +102,7 @@ class BBC():
                 print 'The server couldn\'t fulfill the request.'
                 print 'Error code: ', e.code
         return res
-                
+
 class News():
     
     def __init__(self, title, link, subtext):
