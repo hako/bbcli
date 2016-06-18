@@ -306,6 +306,7 @@ class UI(object):
     def next(self, loop, *args):
         text = self.tickers
         if(not text):
+            self.link = ''
             self.view.set_footer(urwid.AttrWrap(urwid.Text(""), 'body'))
         else:
             self.loop.draw_screen()
