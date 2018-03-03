@@ -6,7 +6,7 @@ import os
 
 from defusedxml import minidom
 
-API_BASE_URL = "http://trevor-producer-cdn.api.bbci.co.uk"
+API_BASE_URL = "https://trevor-producer-cdn.api.bbci.co.uk"
 BBC_URL = "https://www.bbc.co.uk"
 BBC_POLLING_URL = "https://polling.bbc.co.uk"
 
