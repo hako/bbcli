@@ -172,7 +172,7 @@ class UI(object):
         self.loop.screen.set_terminal_properties(colors=256)
         self.update_ticker()
         self.loop.set_alarm_in(200, self._wrapped_refresh)
-        self.loop.set_alarm_in(5, self.next)
+        self.loop.set_alarm_in(5, self.next_item)
 
     def set_keys(self):
         global _config
@@ -303,7 +303,7 @@ class UI(object):
     def set_latest_links(self, link):
         self.link = link
 
-    def next(self, loop, *args):
+    def next_item(self, loop, *args):
         text = self.tickers
         if(not text):
             self.link = ''
@@ -327,7 +327,7 @@ class UI(object):
             else:
                 self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore'))
                 self.set_latest_links(text[self.ticker_count].url)
-        self.loop.set_alarm_in(10, self.next)
+        self.loop.set_alarm_in(10, self.next_item)
 
     def _wrapped_refresh(self, loop, *args):
         online = self.isOnline()

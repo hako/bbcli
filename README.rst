@@ -10,6 +10,10 @@ instalation and usage:
 
 ``pip install bbcli``
 
+or
+
+``pip3 install bbcli``
+
 and then in terminal:
 
 ``bbcli``
