@@ -1,14 +1,11 @@
+import os
 import json
 import arrow
 import requests
-import arrow
-import os
 
-from defusedxml import minidom
-
-API_BASE_URL = "https://trevor-producer-cdn.api.bbci.co.uk"
 BBC_URL = "https://www.bbc.co.uk"
 BBC_POLLING_URL = "https://polling.bbc.co.uk"
+API_BASE_URL = "https://trevor-producer-cdn.api.bbci.co.uk"
 
 class BBC():
     
@@ -25,24 +22,21 @@ class BBC():
         if ticker == None:
             return None
         else:
-            data = json.dumps(ticker.json(strict=False))
+            data = ticker.json(strict=False)
         return self.parse_ticker_data(data)
 
-    def parse_ticker_data(self, ticker_data):
+    def parse_ticker_data(self, data):
         tickers = []
-        data = json.loads(ticker_data)
-        
-        if len(data["html"]) == 0:
+
+        if bool(data["asset"]) == False:
             return tickers
-            
-        response = data["html"]
-        htmlData = minidom.parseString(response.encode('utf-8'))
-        elements = htmlData.getElementsByTagName("div")
-        
-        # Heading
-        headline = elements[0].getElementsByTagName("p")[0].firstChild.nodeValue.replace("\n","")
+
+        # Headline
+        headline = data["asset"]["headline"]
+
         # News Link as in /news/ 
-        url = elements[0].getElementsByTagName("a")[0].getAttribute('href')
+        url = data["asset"]["assetUri"]
+
         ticker = Ticker(headline, "BREAKING NEWS", "true", BBC_URL + url)
         tickers.append(ticker)
         return tickers
@@ -51,7 +45,7 @@ class BBC():
         t_news = []
         ts_section = ""
         data = json.loads(stories)
-        for i, d in enumerate(data['relations']):
+        for _, d in enumerate(data['relations']):
             for rel in d['content']['relations']:
                 if(rel['content']['type'] != "bbc.mobile.news.collection"):
                     pass
@@ -69,20 +63,20 @@ class BBC():
     def get_bbc_story(self):
         res = None
         headers = {
-        'User-Agent': 'BBCNews/3.0.9.45 UK (Nexus 4; Android 5.0)', 
-        'Accept-Encoding': 'gzip',
-        'Connection': 'Keep-Alive',
-        'Accept': 'application/json'
+            'User-Agent': 'BBCNews/5.6.0.100 UK (Pixel 4; Android 6.0)', 
+            'Accept-Encoding': 'gzip',
+            'Connection': 'Keep-Alive',
+            'Accept': 'application/json'
         }
         try:
             res = requests.get(API_BASE_URL + "/content/cps/news/front_page", data=None, headers=headers)
         except requests.ConnectionError as e:
             if hasattr(e, 'reason'):
-                print 'We failed to reach a server.'
-                print 'Reason: ', e.reason
+                print ('We failed to reach a server.')
+                print ('Reason: ', e.reason)
             elif hasattr(e, 'code'):
-                print 'The server couldn\'t fulfill the request.'
-                print 'Error code: ', e.code
+                print ('The server couldn\'t fulfill the request.')
+                print ('Error code: ', e.code)
         return res
 
     def get_bbc_ticker(self):
@@ -91,14 +85,14 @@ class BBC():
            'User-Agent': 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/5311 (KHTML, like Gecko) Chrome/13.0.837.0 Safari/5311'
         }
         try:
-            res = requests.get(BBC_POLLING_URL + "/news/latest_breaking_news?audience=Domestic", data=None, headers=ua)
+            res = requests.get(BBC_POLLING_URL + "/news/latest_breaking_news_waf?audience=Domestic", data=None, headers=ua)
         except requests.ConnectionError as e:
             if hasattr(e, 'reason'):
-                print 'We failed to reach a server.'
-                print 'Reason: ', e.reason
+                print('We failed to reach a server.')
+                print('Reason: ', e.reason)
             elif hasattr(e, 'code'):
-                print 'The server couldn\'t fulfill the request.'
-                print 'Error code: ', e.code
+                print('The server couldn\'t fulfill the request.')
+                print('Error code: ', e.code)
         return res
 
 class News():
