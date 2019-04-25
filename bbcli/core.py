@@ -1,12 +1,11 @@
-import ConfigParser
 import os
 import time
-import webbrowser
-from datetime import datetime
-
 import urwid
+import webbrowser
+import configparser
 
 from bbcapi import BBC
+from datetime import datetime
 
 _config = None
 
@@ -48,7 +47,7 @@ def get_top_stories():
 
 def read_config():
     filename = 'bbcli'
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     if os.path.exists(os.path.expanduser('~' + '/.' + filename)):
         config.read(os.path.expanduser('~' + '/.' + filename))
     elif os.path.exists ( os.path.expanduser('~' + '/.config/' + filename)):
@@ -155,7 +154,7 @@ class UI(object):
         try:
             self.loop.run()
         except KeyboardInterrupt:
-            print "Keyboard interrupt received, quitting gracefully"
+            print("Keyboard interrupt received, quitting gracefully")
             raise urwid.ExitMainLoop
 
     def make_screen(self):
@@ -315,17 +314,17 @@ class UI(object):
             if(self.ticker_count == len(text)):
                 self.ticker_count = 0
             if(not text[self.ticker_count].url and text[self.ticker_count].breaking == "true"):
-                final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
+                final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline
                 msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
                 self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
                 self.set_latest_links(text[self.ticker_count].url)
             elif text[self.ticker_count].url and text[self.ticker_count].breaking == "true":
-                final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore')
+                final_ticker = "[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline
                 msg = '%s' % (final_ticker.rjust(len(final_ticker)+1))
                 self.view.set_footer(urwid.AttrWrap(urwid.Text(msg), 'breaking'))
                 self.set_latest_links(text[self.ticker_count].url)
             else:
-                self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline.encode('ascii', 'ignore'))
+                self.set_status_bar("[" + text[self.ticker_count].prompt +"] " + text[self.ticker_count].headline)
                 self.set_latest_links(text[self.ticker_count].url)
         self.loop.set_alarm_in(10, self.next_item)
 
