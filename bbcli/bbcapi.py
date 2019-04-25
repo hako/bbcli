@@ -8,7 +8,7 @@ BBC_POLLING_URL = "https://polling.bbc.co.uk"
 API_BASE_URL = "https://trevor-producer-cdn.api.bbci.co.uk"
 
 class BBC():
-    
+
     def get_top_stories(self):
         news = self.get_bbc_story()
         if news == None:
@@ -34,7 +34,7 @@ class BBC():
         # Headline
         headline = data["asset"]["headline"]
 
-        # News Link as in /news/ 
+        # News Link as in /news/
         url = data["asset"]["assetUri"]
 
         ticker = Ticker(headline, "BREAKING NEWS", "true", BBC_URL + url)
@@ -59,7 +59,7 @@ class BBC():
             news = News(ts_title, ts_link, ts_subtext)
             t_news.append(news)
         return t_news
-    
+
     def get_bbc_story(self):
         res = None
         headers = {
@@ -96,7 +96,7 @@ class BBC():
         return res
 
 class News():
-    
+
     def __init__(self, title, link, subtext):
         self.title = title
         self.link = link
@@ -104,7 +104,7 @@ class News():
 
 
 class Ticker():
-    
+
     def __init__(self, headline, prompt, breaking, url):
         self.headline = headline
         self.prompt = prompt
