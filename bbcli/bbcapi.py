@@ -63,7 +63,7 @@ class BBC():
     def get_bbc_story(self):
         res = None
         headers = {
-            'User-Agent': 'BBCNews/5.6.0.100 UK (Pixel 4; Android 6.0)', 
+            'User-Agent': 'BBCNews/5.18.0 UK (Pixel 4; Android 10.0)', 
             'Accept-Encoding': 'gzip',
             'Connection': 'Keep-Alive',
             'Accept': 'application/json'
@@ -82,10 +82,10 @@ class BBC():
     def get_bbc_ticker(self):
         res = None
         ua = {
-           'User-Agent': 'Mozilla/5.0 (Windows NT 6.2) AppleWebKit/5311 (KHTML, like Gecko) Chrome/13.0.837.0 Safari/5311'
+           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:53.0) Gecko/20100101 Firefox/53.0'
         }
         try:
-            res = requests.get(BBC_POLLING_URL + "/news/latest_breaking_news_waf?audience=Domestic", data=None, headers=ua)
+            res = requests.get(BBC_POLLING_URL + "/news/breaking-news/audience/domestic", data=None, headers=ua)
         except requests.ConnectionError as e:
             if hasattr(e, 'reason'):
                 print('We failed to reach a server.')
