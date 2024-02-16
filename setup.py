@@ -23,7 +23,6 @@ setup(
         'Programming Language :: Python :: 3',
         'Topic :: Terminals',
     ],
-    use_2to3=True,
     entry_points={
         'console_scripts': ['bbcli = bbcli.core:live']
     })
