@@ -13,7 +13,7 @@ setup(
     author_email='wesley@hakobaito.co.uk',
     url='https://github.com/hako/bbcli',
     packages=['bbcli'],
-    install_requires=['urwid==2.1.1', 'requests==2.24.0', 'arrow==0.15.8'],
+    install_requires=['urwid==2.1.1', 'requests==2.31.0', 'arrow==0.15.8'],
     classifiers=[
         'Environment :: Console',
         'License :: OSI Approved :: MIT License',
