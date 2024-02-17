@@ -4,7 +4,7 @@ import urwid
 import webbrowser
 import configparser
 
-from bbcapi import BBC
+from .bbcapi import BBC
 from datetime import datetime
 
 _config = None
