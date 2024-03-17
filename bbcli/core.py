@@ -27,12 +27,16 @@ class BBCNews(object):
         return self.story.title
 
     @property
+    def story_description(self):
+        return self.story.description
+
+    @property
     def story_link(self):
         return self.story.link
 
     @property
-    def story_subtext(self):
-        return self.story.subtext
+    def last_updated(self):
+        return self.story.last_updated
 
 
 def get_top_stories():
@@ -67,11 +71,15 @@ class ItemWidget(urwid.WidgetWrap):
             '%s. %s' % (s.story_number, s.story_title)),
             'body', 'focus'
         )
-        story_subtext = urwid.AttrWrap(urwid.Text(
-            '    %s' % (s.story_subtext)),
+        story_description = urwid.AttrWrap(urwid.Text(
+            '    %s' % (s.story_description)),
             'subtext', 'focus'
         )
-        pile = urwid.Pile([story_title, story_subtext])
+        story_last_updated = urwid.AttrWrap(urwid.Text(
+            '    %s' % (s.last_updated)),
+            'subtext', 'focus'
+        )
+        pile = urwid.Pile([story_title, story_description, story_last_updated])
         self.item = [
             urwid.Padding(pile, left=1, right=1),
             ('flow', urwid.AttrWrap(urwid.Text(
