@@ -2,10 +2,12 @@ import os
 import json
 import arrow
 import requests
+import xml.etree.ElementTree as ET
+from datetime import datetime
 
 BBC_URL = "https://www.bbc.co.uk"
 BBC_POLLING_URL = "https://polling.bbc.co.uk"
-API_BASE_URL = "https://trevor-producer-cdn.api.bbci.co.uk"
+API_BASE_URL = "https://feeds.bbci.co.uk"
 
 class BBC():
 
@@ -14,7 +16,7 @@ class BBC():
         if news == None:
             return None
         else:
-            data = json.dumps(news.json())
+            data = news.text
             return self.parse_news(data)
 
     def get_ticker(self):
@@ -41,23 +43,36 @@ class BBC():
         tickers.append(ticker)
         return tickers
 
-    def parse_news(self, stories):
+    def parse_news(self, xml_data):
+        news_data = []
+        
+        root = ET.fromstring(xml_data)
+
+        for item in root.findall('.//item'):
+            ts_title = item.find('title').text if item.find('title') is not None else ''
+            ts_link = item.find('link').text if item.find('link') is not None else ''
+            ts_description = item.find('description').text if item.find('description') is not None else ''
+            pubDate = item.find('pubDate').text if item.find('pubDate') is not None else ''
+
+            ts_time = datetime.strptime(pubDate, '%a, %d %b %Y %H:%M:%S %Z')
+            
+            news_data.append({
+                'title': ts_title,
+                'link': ts_link,
+                'description': ts_description,
+                'datetime': ts_time,
+                'pubDate': pubDate
+            })
+
+        sorted_news_data = sorted(news_data, key=lambda x: x['datetime'], reverse=True)
+
         t_news = []
-        ts_section = ""
-        data = json.loads(stories)
-        for _, d in enumerate(data['relations']):
-            for rel in d['content']['relations']:
-                if(rel['content']['type'] != "bbc.mobile.news.collection"):
-                    pass
-                else:
-                    ts_section = rel['content']['name']
-            ts_title = d['content']['name']
-            timestamp = d['content']['lastUpdated']
-            ts_time = arrow.get(float(timestamp) / 1000).humanize()
-            ts_subtext  = "Last updated: " + str(ts_time) + " | " + str(ts_section)
-            ts_link = str(d['content']['shareUrl'])
-            news = News(ts_title, ts_link, ts_subtext)
+        for data in sorted_news_data:
+            ts_human_time = arrow.get(data['datetime']).humanize()
+            ts_last_updated = "Last updated: " + str(ts_human_time)
+            news = News(data['title'], data['link'], data["description"], ts_last_updated)
             t_news.append(news)
+        
         return t_news
 
     def get_bbc_story(self):
@@ -69,7 +84,7 @@ class BBC():
             'Accept': 'application/json'
         }
         try:
-            res = requests.get(API_BASE_URL + "/content/cps/news/front_page", data=None, headers=headers)
+            res = requests.get(API_BASE_URL + "/news/world/rss.xml", data=None, headers=headers)
         except requests.ConnectionError as e:
             if hasattr(e, 'reason'):
                 print ('We failed to reach a server.')
@@ -97,10 +112,11 @@ class BBC():
 
 class News():
 
-    def __init__(self, title, link, subtext):
+    def __init__(self, title, link, description, last_updated):
         self.title = title
         self.link = link
-        self.subtext = subtext
+        self.description = description
+        self.last_updated = last_updated
 
 
 class Ticker():
