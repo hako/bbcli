@@ -355,7 +355,7 @@ fn render_preview(f: &mut Frame, area: Rect, app: &App) {
         let image_area = chunks[0];
 
         // Create picker and configure protocol
-        let mut picker = Picker::from_termios().unwrap_or_else(|_| Picker::new((8, 12)));
+        let mut picker = Picker::new((8, 12));
 
         // Set protocol based on user preference
         match app.image_protocol {

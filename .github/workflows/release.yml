@@ -1,0 +1,127 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version output
+        id: version
+        run: echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.event.inputs.version }}" \
+            --draft \
+            --title "${{ github.event.inputs.version }}" \
+            --notes "Release ${{ github.event.inputs.version }}"
+
+  build-release:
+    name: Build ${{ matrix.target }}
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux x86_64 (GNU libc)
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+
+          # Linux x86_64 (musl - static linking, fully portable)
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+
+          # Linux ARM64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+
+          # Linux ARM64 (musl - static linking)
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+
+          # macOS x86_64 (Intel)
+          - target: x86_64-apple-darwin
+            os: macos-latest
+
+          # macOS ARM64 (Apple Silicon M1/M2/M3)
+          - target: aarch64-apple-darwin
+            os: macos-latest
+
+          # Windows x86_64 (MSVC)
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build and upload binary
+        uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: bbcli
+          target: ${{ matrix.target }}
+          tar: all
+          zip: windows
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: refs/tags/${{ needs.create-release.outputs.version }}
+
+  build-bsd:
+    name: Build BSD ${{ matrix.target }}
+    needs: create-release
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # FreeBSD x86_64
+          - target: x86_64-unknown-freebsd
+
+          # NetBSD x86_64
+          - target: x86_64-unknown-netbsd
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install cross-compilation toolchain
+        uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Build binary
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Create archive
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar czf bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz bbcli
+          mv bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz ${{ github.workspace }}/
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "${{ needs.create-release.outputs.version }}" \
+            bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
