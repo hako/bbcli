@@ -82,6 +82,7 @@ jobs:
           target: ${{ matrix.target }}
           tar: all
           zip: windows
+          checksum: sha256
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: refs/tags/${{ needs.create-release.outputs.version }}
 
@@ -119,9 +120,14 @@ jobs:
           tar czf bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz bbcli
           mv bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz ${{ github.workspace }}/
 
+      - name: Generate SHA256 checksum
+        run: |
+          sha256sum bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz > bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz.sha256
+
       - name: Upload to release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "${{ needs.create-release.outputs.version }}" \
-            bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz
+            bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz \
+            bbcli-${{ needs.create-release.outputs.version }}-${{ matrix.target }}.tar.gz.sha256
