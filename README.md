@@ -1,5 +1,7 @@
 # bbcli
 
+![](https://raw.githubusercontent.com/hako/bbcli/refs/heads/master/bbcli.gif)
+
 Browse BBC News like a hacker.
 
 A terminal-based BBC News reader built with Rust and [ratatui](https://github.com/ratatui-org/ratatui), featuring a compact, numbered list interface with vim-like navigation.
