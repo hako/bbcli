@@ -1,0 +1,14 @@
+# Theme: "light" or "dark"
+# - light: Classic BBC look with off-white background and black text
+# - dark: Dark mode with black background and white text
+theme = "light"
+
+[keybindings]
+quit = 'q'
+open = 'o'
+open_new_tab = 'O'
+refresh = 'r'
+latest = 'l'
+scroll_up = 'k'
+scroll_down = 'j'
+scroll_bottom = 'G'
