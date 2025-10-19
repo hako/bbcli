@@ -10,14 +10,25 @@ A terminal-based BBC News reader built with Rust and [ratatui](https://github.co
 
 # installation
 
-## From crates.io
+## Using eget (Recommended)
+
+Download pre-built binaries:
 
 ```bash
-# Install from crates.io
-cargo install bbc-news-cli
+eget hako/bbcli
 ```
 
-## Using cargo-binstall (recommended)
+## GitHub Releases
+
+Download pre-built binaries for your platform from [GitHub Releases](https://github.com/hako/bbcli/releases):
+
+Available for:
+- **Linux**: x86_64 (gnu/musl), aarch64 (gnu/musl)
+- **macOS**: x86_64 (Intel), aarch64 (Apple Silicon)
+- **Windows**: x86_64
+- **BSD**: FreeBSD, NetBSD
+
+## Using cargo-binstall (Also Recommended)
 
 Fast binary installation without compiling:
 
@@ -28,12 +39,11 @@ Fast binary installation without compiling:
 cargo binstall bbc-news-cli
 ```
 
-## Using eget
-
-Download pre-built binaries:
+## From crates.io
 
 ```bash
-eget hako/bbcli
+# Install from crates.io
+cargo install bbc-news-cli
 ```
 
 ## From source
@@ -44,6 +54,23 @@ cd bbcli
 cargo build --release
 cargo install --path .
 ```
+
+# terminal compatibility
+
+bbcli works best in modern terminals with full Unicode and image protocol support:
+
+**Recommended terminals:**
+- [WezTerm](https://wezfurlong.org/wezterm/) - Excellent image support (Sixel, Kitty, iTerm2)
+- [Ghostty](https://github.com/ghostty-org/ghostty) - Fast, GPU-accelerated with Kitty protocol
+- [Rio](https://raphamorim.io/rio/) - Modern, hardware-accelerated
+- [Alacritty](https://alacritty.org/) - Fast, minimal (Halfblocks mode for images)
+- [Kitty](https://sw.kovidgoyal.net/kitty/) - Full Kitty graphics protocol support
+- [iTerm2](https://iterm2.com/) (macOS) - Inline images protocol
+
+**Image protocols:**
+- Press `p` to cycle through: Auto / Halfblocks / Sixel / Kitty
+- Auto mode detects your terminal's capabilities
+- Halfblocks works in all terminals (Unicode-based)
 
 # usage
 
