@@ -88,6 +88,7 @@ fn run_app(
         let prev_is_fetching_article = app.is_fetching_article;
         let prev_sort_order = app.sort_order.clone();
         let prev_offline = app.is_offline;
+        let prev_status = app.status_message.clone();
 
         // Check for auto-refresh (every 5 minutes)
         let mut action = events::handle_events(app, config)?;
@@ -147,6 +148,7 @@ fn run_app(
             || prev_is_fetching_article != app.is_fetching_article
             || prev_sort_order != app.sort_order
             || prev_offline != app.is_offline
+            || prev_status != app.status_message
             || clock_tick  // Redraw when clock ticks (approximately every second)
             || matches!(action, events::AppAction::Refresh | events::AppAction::FeedChanged | events::AppAction::Resize);
 

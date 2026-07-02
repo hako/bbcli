@@ -234,8 +234,10 @@ fn render_footer(f: &mut Frame, area: Rect, app: &App) {
         ])
         .split(area);
 
-    // Left side: show refresh status or ticker/keybindings
-    let footer_text = if app.is_refreshing {
+    // Left side: transient status/error message takes priority, then refresh status or ticker/keybindings
+    let footer_text = if let Some(msg) = &app.status_message {
+        msg.clone()
+    } else if app.is_refreshing {
         String::from("Refreshing News...")
     } else if !app.ticker_stories.is_empty() {
         let max_ticker_items = 8.min(app.ticker_stories.len());
@@ -250,8 +252,14 @@ fn render_footer(f: &mut Frame, area: Rect, app: &App) {
         format!("q: quit | o: open | Tab: preview | f: feeds | s: sort ({}) | t: dates | p: protocol ({}) | r: refresh", app.sort_order.name(), app.image_protocol.name())
     };
 
+    // Highlight the status bar in red when showing a transient error message
+    let footer_left_fg = if app.status_message.is_some() {
+        Color::Red
+    } else {
+        app.theme.fg_primary
+    };
     let footer_left = Paragraph::new(footer_text)
-        .style(Style::default().fg(app.theme.fg_primary).bg(app.theme.bg_accent))
+        .style(Style::default().fg(footer_left_fg).bg(app.theme.bg_accent))
         .alignment(Alignment::Left);
 
     // Right side: current time with seconds

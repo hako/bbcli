@@ -96,6 +96,8 @@ pub struct App {
     pub article_scroll_offset: usize,      // Scroll position in article view
     pub is_fetching_article: bool,         // Loading state for article fetching
     pub sort_order: SortOrder,             // Current sort order
+    pub status_message: Option<String>,    // Transient footer status/error message
+    status_message_time: Option<Instant>,  // When the status message was set (for expiry)
     pub last_refresh_time: Instant,        // Track last refresh for auto-refresh
     article_cache: HashMap<String, String>, // Cache fetched articles by URL
     last_opened_index: Option<usize>,      // Track last opened article index to prevent repeated opens
@@ -130,6 +132,8 @@ impl App {
             article_scroll_offset: 0,              // Start at top of article
             is_fetching_article: false,            // Not fetching initially
             sort_order: SortOrder::Default,        // Default RSS order
+            status_message: None,                  // No transient message initially
+            status_message_time: None,             // No transient message initially
             last_refresh_time: Instant::now(),     // Initialize to now
             article_cache: HashMap::new(),         // Empty cache
             last_opened_index: None,               // No article opened yet
@@ -243,20 +247,20 @@ impl App {
         self.last_selection_change_time = Instant::now();
     }
 
-    pub fn open_selected(&mut self) -> anyhow::Result<()> {
+    pub fn open_selected(&mut self) {
         // AGGRESSIVE PROTECTION against Ghostty event buffering catastrophe:
 
         // 1. SELECTION STABILITY: Prevent opening if selection changed recently
         //    (Requires 3 seconds on same article before opening)
         if self.last_selection_change_time.elapsed().as_secs_f32() < 3.0 {
-            return Ok(()); // Selection changed too recently, ignore
+            return; // Selection changed too recently, ignore
         }
 
         // 2. TIME-BASED: Prevent opening ANY article within 5 seconds of last open
         //    (Prevents rapid-fire opens even when scrolling to different articles)
         if let Some(last_time) = self.last_open_time {
             if last_time.elapsed().as_secs_f32() < 5.0 {
-                return Ok(()); // Still in cooldown, ignore
+                return; // Still in cooldown, ignore
             }
         }
 
@@ -264,20 +268,23 @@ impl App {
         //    (Additional protection against repeated opens)
         if let Some(last_idx) = self.last_opened_index {
             if last_idx == self.selected {
-                return Ok(()); // Same article, ignore
+                return; // Same article, ignore
             }
         }
 
-        // All checks passed, open the article
+        // All checks passed, open the article.
+        // A browser failure must not crash the TUI - surface it in the status bar.
         if let Some(story) = self.stories.get(self.selected) {
-            webbrowser::open(&story.link)?;
+            if let Err(e) = webbrowser::open(&story.link) {
+                self.set_status_message(format!("Could not open browser: {}", e));
+                return;
+            }
             self.last_opened_index = Some(self.selected);
             self.last_open_time = Some(Instant::now());
         }
-        Ok(())
     }
 
-    pub fn open_selected_new_tab(&mut self) -> anyhow::Result<()> {
+    pub fn open_selected_new_tab(&mut self) {
         // Most browsers will open in a new tab by default
         self.open_selected()
     }
@@ -316,7 +323,22 @@ impl App {
         self.error_message = None;
     }
 
+    /// Set a transient status/error message shown in the footer status bar.
+    /// Auto-clears after a few seconds (see `tick`).
+    pub fn set_status_message(&mut self, msg: String) {
+        self.status_message = Some(msg);
+        self.status_message_time = Some(Instant::now());
+    }
+
     pub fn tick(&mut self) -> bool {
+        // Expire transient status message after ~5 seconds
+        if let Some(set_at) = self.status_message_time {
+            if set_at.elapsed().as_secs() >= 5 {
+                self.status_message = None;
+                self.status_message_time = None;
+            }
+        }
+
         self.ticker_counter += 1;
         // Rotate ticker every 100 ticks (approximately 10 seconds at 100ms polling)
         if self.ticker_counter >= 100 {
@@ -396,7 +418,7 @@ impl App {
                     }
                     Err(e) => {
                         self.is_fetching_article = false;
-                        self.set_error(format!("Failed to fetch article: {}", e));
+                        self.set_status_message(format!("Failed to fetch article: {}", e));
                     }
                 }
             } else {

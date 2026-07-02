@@ -65,7 +65,7 @@ fn handle_key_event(app: &mut App, key: KeyEvent, config: &Config) -> anyhow::Re
         match key.code {
             KeyCode::Up | KeyCode::Char('k') => app.scroll_article_up(),
             KeyCode::Down | KeyCode::Char('j') => app.scroll_article_down(),
-            KeyCode::Char(c) if c == kb.open => app.open_selected()?,
+            KeyCode::Char(c) if c == kb.open => app.open_selected(),
             KeyCode::Enter | KeyCode::Tab | KeyCode::Esc => app.toggle_article_view(),
             _ => {}
         }
@@ -117,8 +117,8 @@ fn handle_key_event(app: &mut App, key: KeyEvent, config: &Config) -> anyhow::Re
         KeyCode::Char(c) if c == kb.scroll_down => app.next(),
         KeyCode::Char(c) if c == kb.scroll_up => app.previous(),
         KeyCode::Char(c) if c == kb.scroll_bottom => app.scroll_to_bottom(),
-        KeyCode::Char(c) if c == kb.open => app.open_selected()?,
-        KeyCode::Char(c) if c == kb.open_new_tab => app.open_selected_new_tab()?,
+        KeyCode::Char(c) if c == kb.open => app.open_selected(),
+        KeyCode::Char(c) if c == kb.open_new_tab => app.open_selected_new_tab(),
         KeyCode::Char(c) if c == kb.latest => app.scroll_to_top(),
         KeyCode::Char(c) if c == kb.refresh => return Ok(AppAction::Refresh),
         KeyCode::Char('f') => app.toggle_feed_menu(),
